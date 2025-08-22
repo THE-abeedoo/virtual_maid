@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>虚拟女仆设置界面</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-magic"></i>
+                    <h1>虚拟女仆设置界面</h1>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="saveAllSettings()">
+                        <i class="fas fa-save"></i> 保存所有设置
+                    </button>
+                    <button class="btn btn-secondary" onclick="resetToDefaults()">
+                        <i class="fas fa-undo"></i> 重置默认
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 主要内容 -->
+        <main class="main-content">
+            <!-- 使用教程 -->
+            <section class="settings-section tutorial-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-book"></i> 使用教程</h2>
+                </div>
+                <div class="section-content">
+                    <div class="tutorial-content">
+                        <div class="tutorial-tip">
+                            <i class="fas fa-lightbulb"></i>
+                            <div class="tip-content">
+                                <strong>使用指南：</strong>
+                                <p>🎯 <strong>快速开始：</strong>按 <kbd>Alt + D</kbd> 可以快速打开输入对话框与女仆互动，这是最常用的功能入口！</p>
+                                <p>💬 <strong>对话功能：</strong>女仆支持智能对话、语音合成、图片识别、代码执行等多种功能，您可以用自然语言描述需求。</p>
+                                <p>⚡ <strong>特殊命令：</strong>输入 <code>history</code> 查看聊天历史，<code>clear_history</code> 清空记录，<code>quit</code> 退出程序。</p>
+                                <p>🎨 <strong>个性化设置：</strong>在设置界面可以自定义女仆的背景故事、动画效果、API配置等，让女仆更符合您的喜好。</p>
+                                <p>💡 <strong>小技巧：</strong>女仆会根据您的称呼和背景故事调整对话风格，建议先设置好这些基础信息再开始对话！</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 用户设置 -->
+            <section class="settings-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-user"></i> 用户设置</h2>
+                </div>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label for="userName">您的称呼：</label>
+                        <input type="text" id="userName" value="{{ config.user_name }}" placeholder="请输入您的称呼">
+                        <small>女仆会使用这个称呼来称呼您</small>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 背景故事设置 -->
+            <section class="settings-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-book-open"></i> 背景故事设置</h2>
+                </div>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label for="backgroundStory">女仆背景故事：</label>
+                        <textarea id="backgroundStory" rows="15" placeholder="请输入女仆的背景故事，这将影响AI的行为和对话风格">{{ config.background_story if config.background_story else '' }}</textarea>
+                        <small>修改背景故事可以改变女仆的性格、身份和对话风格。建议保持故事连贯性。</small>
+                    </div>
+                    <div class="story-actions">
+                        <button class="btn btn-secondary" onclick="resetStory()">
+                            <i class="fas fa-undo"></i> 重置为默认故事
+                        </button>
+                        <button class="btn btn-primary" onclick="saveStory()">
+                            <i class="fas fa-save"></i> 保存背景故事
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- API配置 -->
+            <section class="settings-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-key"></i> API配置</h2>
+                </div>
+                <div class="section-content">
+                    <div class="form-group">
+                        <label for="baseUrl">Base URL：</label>
+                        <input type="url" id="baseUrl" value="{{ config.api_config.base_url }}" placeholder="https://www.dmxapi.cn/v1">
+                        <small>AI服务的API基础地址</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="apiKey">API Key：</label>
+                        <div class="password-input">
+                            <input type="password" id="apiKey" value="{{ config.api_config.api_key }}" placeholder="请输入您的API密钥">
+                            <button type="button" class="toggle-password">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <small>您的AI服务API密钥</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="aiModel">语言模型：</label>
+                        <input type="text" id="aiModel" value="{{ config.api_config.model }}" placeholder="请输入语言模型名称，如：Doubao-1.5-pro-32k">
+                        <small>输入要使用的AI语言模型名称</small>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 动画设置 -->
+            <section class="settings-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-film"></i> 动画设置</h2>
+                    <p class="section-description">为不同的场景配置对应的动画序列帧</p>
+                </div>
+                <div class="section-content">
+                    <div class="animation-grid">
+                        {% for scene_name, scene_config in config.animation_settings.items() %}
+                        <div class="animation-item" data-scene="{{ scene_name }}">
+                            <div class="animation-header">
+                                <h3>{{ scene_name }}</h3>
+                                <div class="animation-controls">
+                                    <button class="btn btn-small" onclick="previewAnimation('{{ scene_config.folder if scene_config.folder else scene_config.folders[0] if scene_config.folders else '' }}', '{{ scene_name }}')">
+                                        <i class="fas fa-eye"></i> 预览
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            {% if scene_name == '普通反馈' %}
+                            <!-- 普通反馈支持多个文件夹 -->
+                            <div class="form-group">
+                                <label>动画文件夹：</label>
+                                <div class="folder-selector">
+                                    <select class="folder-select" onchange="updateAnimationSetting('{{ scene_name }}', 'folders', this.value)">
+                                        {% for folder in animation_folders %}
+                                        <option value="{{ folder.name }}" 
+                                                {% if folder.name in scene_config.folders %}selected{% endif %}>
+                                            {{ folder.name }} ({{ folder.image_count }}张)
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                    <button class="btn btn-small" onclick="addFolderToScene('{{ scene_name }}')">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <div class="selected-folders">
+                                    {% for folder in scene_config.folders %}
+                                    <span class="folder-tag">
+                                        {{ folder }}
+                                        <button onclick="removeFolderFromScene('{{ scene_name }}', '{{ folder }}')">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% else %}
+                            <!-- 其他场景使用单个文件夹 -->
+                            <div class="form-group">
+                                <label>动画文件夹：</label>
+                                <select class="folder-select" onchange="updateAnimationSetting('{{ scene_name }}', 'folder', this.value)">
+                                    <option value="">请选择文件夹</option>
+                                    {% for folder in animation_folders %}
+                                    <option value="{{ folder.name }}" 
+                                            {% if scene_config.folder == folder.name %}selected{% endif %}>
+                                        {{ folder.name }} ({{ folder.image_count }}张)
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="animation-params">
+                                <div class="param-group">
+                                    <label>缩放因子：</label>
+                                    <input type="number" step="0.1" min="0.1" max="5.0" 
+                                           value="{{ scene_config.scale_factor }}"
+                                           onchange="updateAnimationSetting('{{ scene_name }}', 'scale_factor', parseFloat(this.value))">
+                                </div>
+                                <div class="param-group">
+                                    <label>循环播放：</label>
+                                    <input type="checkbox" 
+                                           {% if scene_config.loop %}checked{% endif %}
+                                           onchange="updateAnimationSetting('{{ scene_name }}', 'loop', this.checked)">
+                                </div>
+                                <div class="param-group">
+                                    <label>播放速度：</label>
+                                    <input type="number" step="0.1" min="0.1" max="100.0" 
+                                           value="{{ scene_config.play_speed }}"
+                                           onchange="updateAnimationSetting('{{ scene_name }}', 'play_speed', parseFloat(this.value))">
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </section>
+
+            <!-- 动画管理 -->
+            <section class="settings-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-folder-plus"></i> 动画管理</h2>
+                    <p class="section-description">上传新的动画序列帧或管理现有动画</p>
+                </div>
+                <div class="section-content">
+                    <div class="upload-section">
+                        <div class="form-group">
+                            <label for="folderName">文件夹名称：</label>
+                            <input type="text" id="folderName" placeholder="请输入文件夹名称（如：happyTalk）">
+                        </div>
+                        <div class="form-group">
+                            <label for="animationFiles">选择图片文件：</label>
+                            <input type="file" id="animationFiles" multiple accept=".png,.jpg,.jpeg" class="file-input">
+                            <small>支持PNG、JPG、JPEG格式，建议尺寸一致</small>
+                        </div>
+                        <button class="btn btn-primary" onclick="uploadAnimation()">
+                            <i class="fas fa-upload"></i> 上传动画
+                        </button>
+                    </div>
+                    
+                    <div class="existing-animations">
+                        <h3>现有动画文件夹</h3>
+                        <div class="animation-folders">
+                            {% for folder in animation_folders %}
+                            <div class="folder-item">
+                                <div class="folder-info">
+                                    <i class="fas fa-folder"></i>
+                                    <span class="folder-name">{{ folder.name }}</span>
+                                    <span class="folder-count">{{ folder.image_count }}张图片</span>
+                                </div>
+                                <div class="folder-actions">
+                                    <button class="btn btn-small btn-danger" onclick="deleteAnimationFolder('{{ folder.name }}')">
+                                        <i class="fas fa-trash"></i> 删除
+                                    </button>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- 预览模态框 -->
+        <div id="previewModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>动画预览</h3>
+                    <button class="close-btn" onclick="closePreviewModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="previewContainer" class="preview-container">
+                        <!-- 预览内容将在这里显示 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 消息提示 -->
+        <div id="messageContainer" class="message-container"></div>
+    </div>
+
+    <!-- 开发者信息 -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="developer-info">
+                <h3><i class="fas fa-code"></i> 开发者信息</h3>
+                <div class="developer-details">
+                    <p><strong>开发者：</strong>高级qKen</p>
+                    <p><strong>主页：</strong><a href="https://space.bilibili.com/3493108973046446" target="_blank" rel="noopener noreferrer">https://space.bilibili.com/3493108973046446</a></p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/config-manager.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/animation-manager.js') }}"></script>
+</body>
+</html>

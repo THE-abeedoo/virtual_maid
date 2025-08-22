@@ -1,0 +1,15 @@
+{
+  "dialog_config": {
+    "scale": 2.0,
+    "padding_pixels": {
+      "left": 10,
+      "top": 11,
+      "right": 7,
+      "bottom": 0
+    }
+  },
+  "trial_config": {
+    "trial_enabled": true,
+    "trial_exe_path": "trial.exe"
+  }
+}

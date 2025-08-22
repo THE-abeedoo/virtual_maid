@@ -1,0 +1,20 @@
+{
+  "scale_x": 2.5,
+  "scale_y": 1.5,
+  "font_size": 10,
+  "font_family": "Unifont",
+  "padding_pixels": {
+    "left": 8,
+    "top": 11,
+    "right": 0,
+    "bottom": 0
+  },
+  "close_button": {
+    "radius": 15,
+    "color": [255, 255, 255, 128],
+    "border_color": [200, 200, 200, 200],
+    "border_width": 1,
+    "x_color": [100, 100, 100, 200],
+    "x_width": 3
+  }
+}
