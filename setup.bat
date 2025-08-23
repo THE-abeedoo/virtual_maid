@@ -9,7 +9,7 @@ echo.
 python --version >nul 2>&1
 if errorlevel 1 (
     echo ❌ 错误：未检测到Python环境
-    echo 请先安装Python 3.8或更高版本
+    echo 请先安装Python 3.11(推荐)或其它版本
     echo 下载地址：https://www.python.org/downloads/
     pause
     exit /b 1

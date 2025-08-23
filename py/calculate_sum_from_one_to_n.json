@@ -1,0 +1,6 @@
+{
+  "function_name": "calculate_sum_from_one_to_n",
+  "args_doc": [
+    "第1个参数 n 表示计算从1到该数的和，格式示例：3000"
+  ]
+}

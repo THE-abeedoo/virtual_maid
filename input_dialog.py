@@ -3,7 +3,7 @@ import json
 import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QTextEdit, QVBoxLayout, QPushButton
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QObject, QThread, QRect, QPoint
-from PyQt5.QtGui import QPixmap, QImage, QPainter, QFont, QFontMetrics, QColor, QPen, QBrush, QKeySequence, QIcon
+from PyQt5.QtGui import QPixmap, QImage, QPainter, QFont, QFontMetrics, QColor, QPen, QBrush, QKeySequence
 from PyQt5.QtWidgets import QGraphicsDropShadowEffect
 
 
@@ -37,13 +37,10 @@ class InputDialogWidget(QWidget):
         self.drag_threshold = 5  # 拖动阈值，像素
 
         # 设置窗口属性
-        self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
+        self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint | Qt.Tool)
         self.setAttribute(Qt.WA_TranslucentBackground)
         
-        # 设置窗口图标
-        icon_path = "./ui_images/icon.png"
-        if os.path.exists(icon_path):
-            self.setWindowIcon(QIcon(icon_path))
+
 
         # 添加线程安全的信号槽机制
         self._signal_helper = _InputDialogSignalHelper()
@@ -392,7 +389,7 @@ class InputDialogWidget(QWidget):
         """窗口显示事件"""
         super().showEvent(event)
         # 延迟设置焦点，确保窗口完全显示后再设置
-        QTimer.singleShot(50, self._set_focus_to_text_edit)
+        QTimer.singleShot(100, self._set_focus_to_text_edit)
 
 
 class InputDialogManager(QObject):

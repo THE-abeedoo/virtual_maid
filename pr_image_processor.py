@@ -7,7 +7,7 @@ import re
 import concurrent.futures
 from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QWidget
 from PyQt5.QtCore import Qt, QTimer, pyqtSignal, QObject, QThread, QRect, QUrl
-from PyQt5.QtGui import QPixmap, QImage, QPainter, QFont, QFontMetrics, QColor, QDragEnterEvent, QDropEvent, QIcon
+from PyQt5.QtGui import QPixmap, QImage, QPainter, QFont, QFontMetrics, QColor, QDragEnterEvent, QDropEvent
 from PIL import Image
 from call_ai import describe_image
 
@@ -429,11 +429,6 @@ class DraggableWindow(QMainWindow):
 
         self.setWindowFlags(Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
         self.setAttribute(Qt.WA_TranslucentBackground)
-        
-        # 设置窗口图标
-        icon_path = "./ui_images/icon.png"
-        if os.path.exists(icon_path):
-            self.setWindowIcon(QIcon(icon_path))
 
         container = QWidget(self)
         self.setCentralWidget(container)
@@ -488,8 +483,16 @@ class PRImageProcessor(QObject):
     def __init__(self):
         super().__init__()
         self.app = QApplication.instance() or QApplication(sys.argv)
+        
+
+        
         self.root = DraggableWindow()
         self.root.setWindowTitle("整合UI系統")
+        
+        # 设置窗口属性，不显示在任务栏中
+        self.root.setWindowFlags(self.root.windowFlags() | Qt.Tool)
+        
+
 
         screen = self.app.primaryScreen().size()
         self.screen_width = screen.width()

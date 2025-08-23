@@ -501,7 +501,8 @@ class TTSWorkerThread(QThread):
             speak(self.text, tone=self.tone, dialog_shower=self.dialog_shower)
             print(time.time())
         except Exception as e:
-            print(f"语音合成出错: {e}")
+            print(f"TTS报错: {e}")
+            return
         finally:
             self.speech_finished.emit()
 
@@ -510,6 +511,9 @@ class MaidSystem(QObject):
     def __init__(self):
         super().__init__()
         self.app = QApplication.instance() or QApplication(sys.argv)
+        
+
+        
         self.processor = PRImageProcessor()
         self.input_manager = InputDialogManager()
         self.hotkey_manager = GlobalHotkeyManager()

@@ -70,6 +70,66 @@ body {
     flex-wrap: wrap;
 }
 
+/* 警告提示样式 */
+.alert {
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border: 1px solid;
+    animation: slideInDown 0.5s ease-out;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+    border-color: #ffc107;
+    color: #856404;
+}
+
+.alert-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+.alert-content i {
+    font-size: 1.5rem;
+    color: #ffc107;
+    margin-top: 2px;
+}
+
+.alert-text strong {
+    display: block;
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+}
+
+.alert-text p {
+    margin: 5px 0;
+    line-height: 1.5;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { 
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 0.8;
+        transform: scale(1.02);
+    }
+}
+
 /* 按钮样式 */
 .btn {
     padding: 12px 24px;

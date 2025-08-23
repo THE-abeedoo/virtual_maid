@@ -84,16 +84,6 @@ def get_trial_ai_response(text: str) -> str:
         
         # 发送数据并获取输出
         stdout, stderr = process.communicate(input=input_data, timeout=60)
-
-        print(stdout)
-        
-        if process.returncode != 0:
-            error_response = {
-                "actionable": "chat",
-                "task_summary": f"试用程序出错了：{stderr}",
-                "need_additional_data": "null"
-            }
-            return json.dumps(error_response, ensure_ascii=False)
         
         # 解析响应
         try:
@@ -114,9 +104,21 @@ def get_trial_ai_response(text: str) -> str:
                 if ("has expired" in error_content or "used up" in error_content or 
                     "used up all your trial attempts" in error_content):
                     disable_trial()
+                    # 触发网页弹出，显示需要填写API
+                    try:
+                        import webbrowser
+                        import threading
+                        def open_settings_page():
+                            time.sleep(1)  # 延迟1秒，确保主程序处理完当前请求
+                            webbrowser.open('http://localhost:5000?trial_expired=true')
+                        
+                        threading.Thread(target=open_settings_page, daemon=True).start()
+                    except Exception as e:
+                        print(f"无法打开设置页面: {e}")
+                    
                     error_response = {
                         "actionable": "chat",
-                        "task_summary": f"试用已到期，已自动禁用试用模式\n{error_content}",
+                        "task_summary": f"试用已到期，已自动禁用试用模式\n{error_content}\n\n已为您打开设置页面，请填写API密钥继续使用。",
                         "need_additional_data": "null"
                     }
                     return json.dumps(error_response, ensure_ascii=False)
@@ -253,17 +255,7 @@ def get_model_from_config() -> str:
             with open(config_path, 'r', encoding='utf-8') as f:
                 config = json.load(f)
                 model = config.get('api_config', {}).get('model', 'Doubao-1.5-pro-32k')
-                # 验证模型名称是否有效
-                valid_models = [
-                    'Doubao-1.5-pro-32k',
-                    'gpt-3.5-turbo',
-                    'gpt-4',
-                    'gpt-4-turbo',
-                    'claude-3-sonnet',
-                    'claude-3-haiku'
-                ]
-                if model in valid_models:
-                    return model
+                return model
     except Exception as e:
         print(f"⚠️ 读取模型配置失败: {e}")
     

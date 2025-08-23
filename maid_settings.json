@@ -11,25 +11,25 @@
       "folder": "politeTalk",
       "scale_factor": 1,
       "loop": true,
-      "play_speed": 3
+      "play_speed": 3.0
     },
     "思考中": {
       "folder": "DanceWhileTalk",
       "scale_factor": 1,
       "loop": true,
-      "play_speed": 3
+      "play_speed": 3.0
     },
     "写代码中": {
       "folder": "coding",
       "scale_factor": 1,
       "loop": true,
-      "play_speed": 32
+      "play_speed": 32.0
     },
     "错误情况": {
       "folder": "bowWhileTalk",
       "scale_factor": 1,
       "loop": true,
-      "play_speed": 3
+      "play_speed": 3.0
     },
     "普通反馈": {
       "folders": [
@@ -39,49 +39,49 @@
       ],
       "scale_factor": 1,
       "loop": true,
-      "play_speed": 3
+      "play_speed": 3.0
     },
     "等待操作": {
       "folder": "DanceWhileTalk",
       "scale_factor": 1,
       "loop": true,
-      "play_speed": 3
+      "play_speed": 3.0
     },
     "准备执行": {
       "folder": "DanceWhileTalk",
       "scale_factor": 1,
       "loop": true,
-      "play_speed": 3
+      "play_speed": 3.0
     },
     "生成中": {
       "folder": "coding",
       "scale_factor": 1,
       "loop": true,
-      "play_speed": 32
+      "play_speed": 32.0
     },
     "保存中": {
       "folder": "coding",
       "scale_factor": 1,
       "loop": true,
-      "play_speed": 32
+      "play_speed": 32.0
     },
     "准备就绪": {
       "folder": "DanceWhileTalk",
       "scale_factor": 1,
       "loop": true,
-      "play_speed": 3
+      "play_speed": 3.0
     },
     "执行中": {
       "folder": "DanceWhileTalk",
       "scale_factor": 1,
       "loop": true,
-      "play_speed": 3
+      "play_speed": 3.0
     },
     "处理中": {
       "folder": "DanceWhileTalk",
       "scale_factor": 1,
       "loop": true,
-      "play_speed": 3
+      "play_speed": 3.0
     }
   }
 }

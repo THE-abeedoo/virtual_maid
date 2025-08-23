@@ -67,6 +67,11 @@ async function saveAllSettings() {
             showMessage(result.message, 'success');
             // 更新当前配置
             currentConfig = { ...formData };
+            
+            // 如果API密钥已填写，隐藏试用过期警告
+            if (formData.api_config.api_key.trim()) {
+                hideTrialExpiredAlert();
+            }
         } else {
             showMessage(result.message, 'error');
         }

@@ -17,6 +17,9 @@ function initializeApp() {
     // 初始化动画设置
     initializeAnimationSettings();
     
+    // 检查试用状态
+    checkTrialStatus();
+    
     // 绑定事件监听器
     bindEventListeners();
 }
@@ -40,6 +43,50 @@ function togglePassword() {
     } else {
         passwordInput.type = 'password';
         toggleBtn.className = 'fas fa-eye';
+    }
+}
+
+// 检查试用状态
+function checkTrialStatus() {
+    // 检查URL参数中是否有试用过期的标识
+    const urlParams = new URLSearchParams(window.location.search);
+    const trialExpired = urlParams.get('trial_expired');
+    
+    if (trialExpired === 'true') {
+        showTrialExpiredAlert();
+    }
+    
+    // 检查API密钥是否为空，如果为空且没有试用过期标识，也显示提示
+    const apiKeyInput = document.getElementById('apiKey');
+    if (apiKeyInput && !apiKeyInput.value.trim()) {
+        showTrialExpiredAlert();
+    }
+}
+
+// 显示试用过期警告
+function showTrialExpiredAlert() {
+    const alertElement = document.getElementById('trialExpiredAlert');
+    if (alertElement) {
+        alertElement.style.display = 'block';
+        
+        // 滚动到警告位置
+        alertElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+        });
+        
+        // 添加闪烁效果
+        alertElement.style.animation = 'slideInDown 0.5s ease-out, pulse 2s infinite';
+    }
+}
+
+// 隐藏试用过期警告
+function hideTrialExpiredAlert() {
+    const alertElement = document.getElementById('trialExpiredAlert');
+    if (alertElement) {
+        alertElement.style.display = 'none';
+        // 重置动画
+        alertElement.style.animation = '';
     }
 }
 
