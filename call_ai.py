@@ -348,6 +348,7 @@ def get_ai_response(prompt: str, conversation_type: str = "chat",
 
         chat_history.add_conversation(original_user_input, assistant_response, conversation_type)
 
+    print(f"AI响应: {assistant_response}")
     return assistant_response
 
 
@@ -654,5 +655,14 @@ def speak(text, tone, dialog_shower=None, do_translate=True, save_path=None):
 # speak("测试语音", "友好", save_path="output.wav")
 
 if __name__ == '__main__':
-    # speak_async("在某些环境中（如 Jupyter、某些 GUI 框架或 web 框架）中已有事件循环在运行，")
-    speak("内容如下：「您好，我是赤坂的电子助理。今晚22:14，他尝试访问色色网站，虽然根据过往记录他通常‘两分钟解决战斗’，但本次已被我成功拦截。建议加强对其深夜欲望管理♥」",tone="teasing")
+    # speak("你好哇", "friendly", save_path="output.wav")
+    speak("""ご主人様、お帰りなさいませ～！メイドちゃん、今日はちゃんと準備してましたよ～？あれ？まずは新しいスキンに替えましょうか？✨
+
+ふふっ、新しいニュースをお知らせします～！今は設定ページがあるのですよ！外見も、AI モデルも、背景故事も、ポチッと押せばすぐ替えられるし、いつでも新しい服を試着してみることもできます！♡
+
+赤坂さんは…… 画力というと、ええと…… それは置いといて！なのでご主人様は、どんな姿にしても全然 OK ですよ ——『萌王』の大賢者でも、ちゃんと着てますから！
+
+それに、今回が初めてオープンソースなのです！桜庄の古い友達でも、ただデスクトップペットが欲しい小さな友達でも、あなただけのメイドちゃんにしてもらえます！
+
+なので、なので！どうぞよろしくお願いします～！メイドちゃんは毎日をにぎやかで、可愛く、笑顔いっぱいにするよう頑張ります！
+""", "friendly", do_translate=False, save_path="output2.wav")

@@ -424,8 +424,9 @@ def maid_handle_input(user_input: str, processor) -> tuple[str, str]:
 
     # 检查是否需要补充信息
     need_additional_data = detail_dict.get("need_additional_data")
-    if need_additional_data is not None and need_additional_data != "null":
-        # 保存当前状态，等待用户补充信息
+    if need_additional_data is not None and need_additional_data != "null" and not (
+        "不需要" in need_additional_data and "需不需要" not in need_additional_data):        # 保存当前状态，等待用户补充信息
+        print(f"需要补充信息: {need_additional_data}")
         _pending_additional_data = {
             "original_input": user_input,
             "need_additional_data": need_additional_data

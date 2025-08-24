@@ -174,7 +174,7 @@ CODE_GENERATION_PROMPT = username + (
     "    ...\n"
     "  ],\n"
     "  \"current_inputs\": "
-    "    [\"参数1示例\", \"参数2示例\", ...],\n"
+    "    [\"str参数示例\", float/int参数示例(注意：如果需要数字输入则不要放到引号里), ...],\n"
     "}}\n"
 )
 

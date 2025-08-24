@@ -14,7 +14,7 @@
 ## 📋 系统要求
 
 - **操作系统**: Windows 10/11, macOS, Linux
-- **Python版本**: Python 3.8 或更高版本
+- **Python版本**: Python 3.11(其余未测试)
 - **内存**: 至少 4GB RAM
 - **存储空间**: 至少 2GB 可用空间
 - **网络**: 需要网络连接以使用AI服务
@@ -47,7 +47,7 @@
 
 1. **访问Python官网**
    - 打开浏览器，访问 [https://www.python.org/downloads/](https://www.python.org/downloads/)
-   - 点击"Download Python 3.x.x"按钮（选择最新版本）
+   - 点击"Download Python 3.x.x"按钮
 
 2. **下载安装程序**
    - 选择Windows installer (64-bit)
@@ -317,10 +317,10 @@ virtualMaid_2025/
 
 ## 📄 许可证
 
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
+本项目采用许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
 
 
-- 开发者: 高级qKen
+- 开发者: [高级qKen](https://space.bilibili.com/3493108973046446)
 
 ## 🔄 更新日志
 
