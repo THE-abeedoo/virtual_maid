@@ -1,6 +1,0 @@
-{
-  "function_name": "count_files_in_desktop_folders",
-  "args_doc": [
-    "此函数无参数，用于统计当前操作系统用户桌面所有文件夹（包含隐藏文件）中的文件数量"
-  ]
-}

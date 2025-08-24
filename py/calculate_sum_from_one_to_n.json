@@ -1,6 +1,0 @@
-{
-  "function_name": "calculate_sum_from_one_to_n",
-  "args_doc": [
-    "第1个参数，用于指定求和的上限，从1开始累加到该数值，格式示例：3000"
-  ]
-}
