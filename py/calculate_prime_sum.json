@@ -1,0 +1,6 @@
+{
+  "function_name": "calculate_prime_sum",
+  "args_doc": [
+    "第1个参数，代表计算质数和的上限，是一个非负整数，格式示例：112233"
+  ]
+}

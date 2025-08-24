@@ -19,6 +19,47 @@ from input_dialog import InputDialogManager
 CODE_FOLDER = Path("./py").resolve()
 
 
+def analyze_code_error(error_msg: str, code_content: str) -> str:
+    """
+    分析代码错误，提供改进建议
+    """
+    try:
+        analysis_prompt = f"""
+请分析以下Python代码的错误，并提供具体的修复建议：
+
+错误信息：{error_msg}
+
+代码内容：
+{code_content}
+
+请提供：
+1. 错误原因分析
+2. 具体的修复建议
+3. 改进后的代码示例（如果需要）
+
+请用中文回答，格式要清晰。
+"""
+        
+        analysis_result = get_ai_response(analysis_prompt, "code_analysis", include_history=False, save_to_history=False)
+        return analysis_result
+    except Exception as e:
+        return f"错误分析失败: {str(e)}"
+
+
+def validate_code_syntax(code_content: str) -> tuple[bool, str]:
+    """
+    验证代码语法是否正确
+    返回: (是否有效, 错误信息)
+    """
+    try:
+        compile(code_content, '<string>', 'exec')
+        return True, ""
+    except SyntaxError as e:
+        return False, f"语法错误: {str(e)}"
+    except Exception as e:
+        return False, f"代码验证错误: {str(e)}"
+
+
 def get_function_list() -> dict:
     """
     获取函数列表，格式：{"a.py":["参数1描述","参数2描述"...]...}
@@ -45,11 +86,50 @@ def get_function_list() -> dict:
     return function_dict
 
 
-def run_python_function_from_file(file_path: str, func_name: str, args_list: list = None) -> str:
+def pre_check_code_file(file_path: str, func_name: str) -> tuple[bool, str]:
     """
-    从文件中运行Python函数，支持传入参数列表
+    在代码执行前进行预检查
+    返回: (是否通过检查, 检查结果信息)
     """
     try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            code_content = f.read()
+        
+        # 检查代码是否为空
+        if not code_content.strip():
+            return False, "代码文件为空"
+        
+        # 检查语法
+        syntax_valid, syntax_error = validate_code_syntax(code_content)
+        if not syntax_valid:
+            return False, f"语法检查失败: {syntax_error}"
+        
+        # 检查是否包含main函数
+        if "def main" not in code_content and "def main(" not in code_content:
+            return False, "代码缺少main函数"
+        
+        # 检查是否有明显的导入错误
+        if "import " in code_content or "from " in code_content:
+            # 这里可以添加更复杂的导入检查逻辑
+            pass
+        
+        return True, "代码预检查通过"
+        
+    except Exception as e:
+        return False, f"预检查过程出错: {str(e)}"
+
+
+def run_python_function_from_file(file_path: str, func_name: str, args_list: list = None) -> tuple[str, bool]:
+    """
+    从文件中运行Python函数，支持传入参数列表
+    返回: (执行结果, 是否成功)
+    """
+    try:
+        # 执行前预检查
+        pre_check_result, pre_check_msg = pre_check_code_file(file_path, func_name)
+        if not pre_check_result:
+            return f"代码预检查失败: {pre_check_msg}", False
+        
         spec = importlib.util.spec_from_file_location("dynamic_module", file_path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
@@ -57,11 +137,131 @@ def run_python_function_from_file(file_path: str, func_name: str, args_list: lis
         if hasattr(module, func_name):
             func = getattr(module, func_name)
             result = func(*args_list) if args_list else func()
-            return str(result)
+            return str(result), True
         else:
-            return f"函数 {func_name} 不存在"
+            return f"函数 {func_name} 不存在", False
     except Exception as e:
-        return f"执行错误: {str(e)}"
+        error_msg = f"执行错误: {str(e)}"
+        print(f"代码执行失败: {error_msg}")
+        return error_msg, False
+
+
+def delete_code_file(func_name: str) -> bool:
+    """
+    删除指定的代码文件
+    返回: 是否删除成功
+    """
+    try:
+        clean_func_name = Path(func_name).stem
+        py_path = CODE_FOLDER / f"{clean_func_name}.py"
+        json_path = CODE_FOLDER / f"{clean_func_name}.json"
+        
+        # 删除Python文件
+        if py_path.exists():
+            py_path.unlink()
+            print(f"已删除Python文件: {py_path}")
+        
+        # 删除JSON文件
+        if json_path.exists():
+            json_path.unlink()
+            print(f"已删除JSON文件: {json_path}")
+        
+        return True
+    except Exception as e:
+        print(f"删除文件失败: {e}")
+        return False
+
+
+def rewrite_code_with_retry(task_summary: str, func_name: str, retry_count: int, processor, previous_error: str = "", previous_code: str = "") -> tuple[str, str, list, bool]:
+    """
+    重写代码，支持重试机制，集成错误分析和语法验证
+    返回: (新代码, 新函数名, 参数列表, 是否成功)
+    """
+    try:
+        # 写代码相关：使用配置的动画设置
+        coding_config = get_animation_config("写代码中")
+        folder = coding_config.get('folder', 'coding')
+        scale_factor = coding_config.get('scale_factor', 1.0)
+        play_speed = coding_config.get('play_speed', 32.0)
+        processor.play(folder, scale_factor=scale_factor, loop=True, play_speed=play_speed)
+        
+        retry_message = f"第{retry_count}次重试生成代码中..." if retry_count > 1 else "正在为主人生成新代码呢~"
+        processor.show_timed_dialog(retry_message, "生成中...")
+        
+        # 在重试时，给AI更明确的提示
+        enhanced_prompt = prompt.CODE_GENERATION_PROMPT.format(task_summary=task_summary)
+        
+        if retry_count > 1 and previous_error and previous_code:
+            # 分析之前的错误
+            error_analysis = analyze_code_error(previous_error, previous_code)
+            enhanced_prompt += f"\n\n注意：这是第{retry_count}次重试。之前的代码执行失败，错误信息：{previous_error}"
+            enhanced_prompt += f"\n\n错误分析：{error_analysis}"
+            enhanced_prompt += f"\n\n请根据以上分析，生成能够正确执行的代码，避免之前的错误。"
+        elif retry_count > 1:
+            enhanced_prompt += f"\n\n注意：这是第{retry_count}次重试，请确保代码能够正确执行，避免之前的错误。"
+        
+        code_result = get_ai_response(enhanced_prompt, "code_execution", include_history=False, save_to_history=False)
+
+        try:
+            code_dict = json.loads(code_result)
+            print(f"代码生成结果 (重试{retry_count}): {code_dict}")
+        except json.JSONDecodeError as e:
+            print(f"JSON解析错误 (重试{retry_count}): {e}")
+            print(f"原始结果: {code_result}")
+            return "", "", [], False
+
+        new_func_name = code_dict.get("function_name")
+        code = code_dict.get("code")
+        args_doc = code_dict.get("args_doc", [])
+        current_inputs = code_dict.get("current_inputs", [])
+        
+        if not new_func_name or not code:
+            print(f"数据不完整 (重试{retry_count}) - func_name: {bool(new_func_name)}, code: {bool(code)}")
+            return "", "", [], False
+
+        # 验证代码语法
+        syntax_valid, syntax_error = validate_code_syntax(code)
+        if not syntax_valid:
+            print(f"代码语法错误 (重试{retry_count}): {syntax_error}")
+            processor.show_timed_dialog(f"生成的代码有语法错误，正在重新生成...", "重写中...")
+            return "", "", [], False
+
+        # 验证生成的代码是否包含必要的函数
+        if "def main" not in code and "def main(" not in code:
+            print(f"生成的代码缺少main函数 (重试{retry_count})")
+            processor.show_timed_dialog("生成的代码格式不正确，正在重新生成...", "重写中...")
+            return "", "", [], False
+
+        # 保存新代码
+        CODE_FOLDER.mkdir(exist_ok=True)
+        clean_func_name = Path(new_func_name).stem
+        py_path = CODE_FOLDER / f"{clean_func_name}.py"
+        json_path = CODE_FOLDER / f"{clean_func_name}.json"
+        
+        try:
+            with open(py_path, "w", encoding="utf-8") as f:
+                f.write(code)
+            print(f"Python文件保存成功 (重试{retry_count}): {py_path}")
+        except Exception as e:
+            print(f"保存Python文件失败 (重试{retry_count}): {e}")
+            return "", "", [], False
+
+        try:
+            with open(json_path, "w", encoding="utf-8") as f:
+                json.dump({"function_name": new_func_name, "args_doc": args_doc}, f, ensure_ascii=False, indent=2)
+            print(f"JSON文件保存成功 (重试{retry_count}): {json_path}")
+        except Exception as e:
+            print(f"保存JSON文件失败 (重试{retry_count}): {e}")
+            # 删除已保存的Python文件
+            if py_path.exists():
+                py_path.unlink()
+            return "", "", [], False
+
+        return code, new_func_name, current_inputs if current_inputs else [], True
+        
+    except Exception as e:
+        print(f"重写代码失败 (重试{retry_count}): {e}")
+        return "", "", [], False
 
 
 # 需要在模块级别添加一个全局变量来存储待补充信息的状态
@@ -318,6 +518,19 @@ def maid_handle_input(user_input: str, processor) -> tuple[str, str]:
             processor.play(folder, scale_factor=scale_factor, loop=True, play_speed=play_speed)
             return error_msg, "Speak in a cheerful and positive tone."
 
+        # 验证生成的代码是否包含必要的函数
+        if "def main" not in code and "def main(" not in code:
+            print("生成的代码缺少main函数")
+            error_msg = "生成的代码格式不正确，缺少main函数。请重新描述您的需求。"
+            chat_history.add_conversation(user_input, error_msg, "code_execution")
+            # 错误情况：使用配置的动画设置
+            error_config = get_animation_config("错误情况")
+            folder = error_config.get('folder', 'bowWhileTalk')
+            scale_factor = error_config.get('scale_factor', 1.0)
+            play_speed = error_config.get('play_speed', 3.0)
+            processor.play(folder, scale_factor=scale_factor, loop=True, play_speed=play_speed)
+            return error_msg, "Speak in a cheerful and positive tone."
+
         CODE_FOLDER.mkdir(exist_ok=True)
         # 写代码相关：使用配置的动画设置
         processor.play(folder, scale_factor=scale_factor, loop=True, play_speed=play_speed)
@@ -359,23 +572,105 @@ def maid_handle_input(user_input: str, processor) -> tuple[str, str]:
         processor.play(folder, scale_factor=scale_factor, loop=True, play_speed=play_speed)
         processor.show_timed_dialog("代码已保存，随时可以为主人执行哟~", "准备就绪...")
 
-    # 等待操作：使用配置的动画设置
-    wait_config = get_animation_config("等待操作")
-    folder = wait_config.get('folder', 'DanceWhileTalk')
-    scale_factor = wait_config.get('scale_factor', 1.0)
-    play_speed = wait_config.get('play_speed', 3.0)
-    processor.play(folder, scale_factor=scale_factor, loop=True, play_speed=play_speed)
-    processor.show_timed_dialog(f"开始执行函数：{func_name}，请稍候哟~", "执行中...")
-    clean_func_name = Path(func_name).stem
-    py_file_path = CODE_FOLDER / f"{clean_func_name}.py"
-    output = run_python_function_from_file(str(py_file_path), "main", args_value_list)
+    # 智能重试机制
+    max_retries = 3
+    current_retry = 0
+    execution_success = False
+    final_output = ""
+    final_func_name = func_name
+    previous_code_content = ""
+    previous_error_msg = ""
+    
+    processor.show_timed_dialog(f"开始执行函数：{func_name}，最多重试{max_retries}次", "准备执行...")
+    
+    while current_retry < max_retries and not execution_success:
+        current_retry += 1
+        
+        if current_retry > 1:
+            processor.show_timed_dialog(f"第{current_retry}次重试执行函数：{final_func_name} (共{max_retries}次)", "重试中...")
+        else:
+            processor.show_timed_dialog(f"第{current_retry}次执行函数：{final_func_name}", "执行中...")
+        
+        clean_func_name = Path(final_func_name).stem
+        py_file_path = CODE_FOLDER / f"{clean_func_name}.py"
+        
+        # 读取当前代码内容（用于错误分析）
+        try:
+            with open(py_file_path, 'r', encoding='utf-8') as f:
+                previous_code_content = f.read()
+        except Exception as e:
+            print(f"读取代码文件失败: {e}")
+            previous_code_content = ""
+        
+        # 执行代码
+        output, success = run_python_function_from_file(str(py_file_path), "main", args_value_list)
+        
+        if success:
+            execution_success = True
+            final_output = output
+            success_message = f"代码执行成功！(第{current_retry}次尝试)"
+            print(success_message)
+            processor.show_timed_dialog(success_message, "执行成功")
+            break
+        else:
+            print(f"代码执行失败 (尝试{current_retry}次): {output}")
+            previous_error_msg = output
+            
+            if current_retry < max_retries:
+                remaining_retries = max_retries - current_retry
+                processor.show_timed_dialog(
+                    f"代码执行失败，剩余重试次数：{remaining_retries}次\n正在分析错误并重写代码...", 
+                    "分析中..."
+                )
+                
+                # 删除失败的代码文件
+                if delete_code_file(final_func_name):
+                    processor.show_timed_dialog(
+                        f"已删除失败代码，正在生成第{current_retry + 1}版代码...", 
+                        "重写中..."
+                    )
+                    
+                    # 重写代码，传递之前的错误信息和代码内容
+                    new_code, new_func_name, new_args, rewrite_success = rewrite_code_with_retry(
+                        task_summary, final_func_name, current_retry + 1, processor, 
+                        previous_error=previous_error_msg, previous_code=previous_code_content
+                    )
+                    
+                    if rewrite_success:
+                        final_func_name = new_func_name
+                        args_value_list = new_args
+                        processor.show_timed_dialog(
+                            f"第{current_retry + 1}版代码生成完成，准备重新执行...", 
+                            "准备中..."
+                        )
+                    else:
+                        processor.show_timed_dialog(
+                            f"第{current_retry + 1}版代码生成失败，将尝试使用原始代码...", 
+                            "准备中..."
+                        )
+                        # 如果重写失败，尝试使用原始代码
+                        final_func_name = func_name
+                        args_value_list = args_value_list
+                else:
+                    processor.show_timed_dialog(
+                        "删除失败代码文件时出错，将尝试重新执行...", 
+                        "准备中..."
+                    )
+            else:
+                # 最后一次尝试失败
+                final_output = f"代码执行失败，已重试{max_retries}次。\n最后一次错误：{output}\n\n建议：请检查需求描述是否清晰，或者尝试重新描述您的需求。"
+                processor.show_timed_dialog(
+                    f"代码执行多次失败，已重试{max_retries}次\n请检查需求描述或重新尝试", 
+                    "执行失败"
+                )
+    
     # 等待操作：使用配置的动画设置
     processor.play(folder, scale_factor=scale_factor, loop=True, play_speed=play_speed)
     processor.show_timed_dialog("函数执行完成，正在整理结果呢~", "处理中...")
 
     final_prompt = prompt.FINAL_RESPONSE_PROMPT.format(
         task_summary=task_summary,
-        command_output=output
+        command_output=final_output
     )
     final_result = get_ai_response(final_prompt, "code_execution", include_history=False, save_to_history=False)
 
@@ -392,7 +687,7 @@ def maid_handle_input(user_input: str, processor) -> tuple[str, str]:
         {
             "task_summary": task_summary,
             "function_name": func_name,
-            "code_output": output
+            "code_output": final_output
         }
     )
 
