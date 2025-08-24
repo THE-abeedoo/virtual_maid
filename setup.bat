@@ -16,7 +16,7 @@ echo.
 python --version >nul 2>&1
 if errorlevel 1 (
     echo ERROR: Python environment not detected
-    echo Please install Python 3.11 (recommended) or other versions first
+    echo Please install Python 3.11 recommended or other versions first
     echo Download address: https://www.python.org/downloads/
     pause
     exit /b 1
