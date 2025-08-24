@@ -9,12 +9,12 @@ echo ========================================
 echo VirtualMaid 2025 Auto-Installation Script
 echo ========================================
 echo.
-echo Current working directory: %CD%
+echo Current working directory: "%CD%"
 echo.
 
 :: Check if Python is installed
 python --version >nul 2>&1
-if errorlevel 1 (
+if %errorlevel% equ 1 (
     echo ERROR: Python environment not detected
     echo Please install Python 3.11 recommended or other versions first
     echo Download address: https://www.python.org/downloads/
@@ -29,7 +29,7 @@ python --version
 if not exist "requirements.txt" (
     echo ERROR: requirements.txt file not found
     echo Please ensure you are running this script in the correct directory
-    echo Current directory: %CD%
+    echo Current directory: "%CD%"
     pause
     exit /b 1
 )
@@ -46,12 +46,12 @@ python -m pip install --upgrade pip
 echo Installing dependencies...
 pip install -r requirements.txt
 
-if errorlevel 1 (
+if %errorlevel% equ 1 (
     echo.
     echo Dependency installation failed, trying with domestic mirror source...
     pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple/
     
-    if errorlevel 1 (
+    if %errorlevel% equ 1 (
         echo.
         echo Dependency installation still failed
         echo Please check network connection or install dependencies manually
