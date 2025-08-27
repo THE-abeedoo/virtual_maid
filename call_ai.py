@@ -664,6 +664,3 @@ def speak(text, tone, dialog_shower=None, do_translate=True, save_path=None):
 
 # 使用示例：
 # speak("测试语音", "友好", save_path="output.wav")
-
-if __name__ == '__main__':
-    # speak("你好哇", "friendly", save_path="output.wav")
