@@ -263,9 +263,10 @@ def get_model_from_config() -> str:
     return ''
 
 
-def simple_ai_response(text: str) -> str:
+def simple_ai_response(text: str, include_history: bool = True) -> str:
     """
     简单的AI响应函数，输入文本返回文本
+    支持历史记录功能
     """
     # 动态获取API配置
     base_url, api_key = load_api_config()
@@ -274,40 +275,50 @@ def simple_ai_response(text: str) -> str:
     if api_key == "AKASAKAMAID" and should_use_trial():
         return get_trial_ai_response(text)
     
-    url = f"{base_url}/chat/completions"
-
-    # 构建消息列表
+    # 构建消息列表，包含系统提示
     messages = [
         {
             "role": "system",
             "content": pt.story
-        },
-        {
-            "role": "user",
-            "content": text
         }
     ]
+    
+    # 如果需要历史记录，添加历史对话
+    if include_history:
+        try:
+            from chat_history import chat_history
+            # 添加历史记录，模仿449-450行的代码
+            history_messages = chat_history.format_history_for_ai(10)
+            messages.extend(history_messages)
+        except Exception as e:
+            print(f"⚠️ 加载历史记录失败: {e}")
+    
+    # 添加当前用户输入
+    messages.append({
+        "role": "user",
+        "content": text
+    })
 
     # 从配置中获取模型名称，如果没有则使用默认值
     model_name = get_model_from_config()
     
-    payload = json.dumps({
-        "model": model_name,
-        "messages": messages
-    })
-
-    headers = {
-        'Accept': 'application/json',
-        'Authorization': f'Bearer {api_key}',
-        'User-Agent': 'VirtualMaid/1.0.0',
-        'Content-Type': 'application/json'
-    }
-
     try:
-        response = requests.post(url, headers=headers, data=payload)
-        response.raise_for_status()
-        result = response.json()
-        return result["choices"][0]["message"]["content"].strip()
+        # 使用OpenAI库而不是requests
+        client = OpenAI(
+            api_key=api_key,
+            base_url=base_url
+        )
+        
+        # 调用OpenAI API
+        response = client.chat.completions.create(
+            model=model_name,
+            messages=messages,
+            temperature=0.7,
+            max_tokens=2000
+        )
+        
+        return response.choices[0].message.content.strip()
+        
     except Exception as e:
         return f"出错了：{str(e)}"
 
@@ -330,8 +341,8 @@ def get_ai_response(prompt: str, conversation_type: str = "chat",
     """
     from chat_history import chat_history
 
-    # 调用底层函数获取AI响应
-    assistant_response = simple_ai_response(prompt)
+    # 调用底层函数获取AI响应，传递历史记录参数
+    assistant_response = simple_ai_response(prompt, include_history=include_history)
 
     # 移除所有的"```json"和"```"标记
     assistant_response = assistant_response.replace("```json", "").replace("```", "").strip()
@@ -656,13 +667,3 @@ def speak(text, tone, dialog_shower=None, do_translate=True, save_path=None):
 
 if __name__ == '__main__':
     # speak("你好哇", "friendly", save_path="output.wav")
-    speak("""ご主人様、お帰りなさいませ～！メイドちゃん、今日はちゃんと準備してましたよ～？あれ？まずは新しいスキンに替えましょうか？✨
-
-ふふっ、新しいニュースをお知らせします～！今は設定ページがあるのですよ！外見も、AI モデルも、背景故事も、ポチッと押せばすぐ替えられるし、いつでも新しい服を試着してみることもできます！♡
-
-赤坂さんは…… 画力というと、ええと…… それは置いといて！なのでご主人様は、どんな姿にしても全然 OK ですよ ——『萌王』の大賢者でも、ちゃんと着てますから！
-
-それに、今回が初めてオープンソースなのです！桜庄の古い友達でも、ただデスクトップペットが欲しい小さな友達でも、あなただけのメイドちゃんにしてもらえます！
-
-なので、なので！どうぞよろしくお願いします～！メイドちゃんは毎日をにぎやかで、可愛く、笑顔いっぱいにするよう頑張ります！
-""", "friendly", do_translate=False, save_path="output2.wav")
